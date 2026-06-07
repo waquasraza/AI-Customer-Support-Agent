@@ -24,9 +24,7 @@ async def list_tickets():
     return tickets
 
 @router.get("/{ticket_id}")
-async def get_ticket_by_id(
-    ticket_id: str
-    ):
+async def get_ticket_by_id(ticket_id: str):
 
     ticket = get_ticket(ticket_id)
 
@@ -39,10 +37,7 @@ async def get_ticket_by_id(
     return ticket
 
 @router.patch("/{ticket_id}")
-async def update_ticket(
-    ticket_id: str,
-    request: TicketUpdateRequest
-    ):
+async def update_ticket(ticket_id: str, request: TicketUpdateRequest):
 
     ticket = update_ticket_status(
         ticket_id,

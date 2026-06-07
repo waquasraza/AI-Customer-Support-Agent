@@ -3,62 +3,89 @@
 ## High-Level Architecture
 
 ```text
-                    ┌─────────────────────┐
-                    │      Customer       │
-                    └──────────┬──────────┘
-                               │
-                               ▼
-                    ┌─────────────────────┐
-                    │     FastAPI API     │
-                    └──────────┬──────────┘
-                               │
-                               ▼
-                    ┌─────────────────────┐
-                    │    Router Agent     │
-                    └──────────┬──────────┘
-                               │
-       ┌───────────────────────┼───────────────────────┐
-       │                       │                       │
-       ▼                       ▼                       ▼
+                          ┌─────────────────────┐
+                          │      Customer       │
+                          └──────────┬──────────┘
+                                     │
+                                     ▼
+                          ┌─────────────────────┐
+                          │     FastAPI API     │
+                          └──────────┬──────────┘
+                                     │
+                                     ▼
+                     ┌──────────────────────────────┐
+                     │      LangGraph Workflow      │
+                     └──────────────┬───────────────┘
+                                    │
+                                    ▼
 
-┌──────────────┐      ┌──────────────┐      ┌──────────────┐
-│ Billing Agent│      │Account Agent │      │Technical Agent│
-└──────┬───────┘      └──────┬───────┘      └──────┬───────┘
-       │                     │                     │
-       └─────────────────────┼─────────────────────┘
-                             │
-                             ▼
-                    ┌─────────────────────┐
-                    │     Retriever       │
-                    └──────────┬──────────┘
-                               │
-                               ▼
-                    ┌─────────────────────┐
-                    │      ChromaDB       │
-                    └──────────┬──────────┘
-                               │
-                               ▼
-                    ┌─────────────────────┐
-                    │      OpenAI LLM     │
-                    └──────────┬──────────┘
-                               │
-                               ▼
-                    ┌─────────────────────┐
-                    │   Support Answer    │
-                    └──────────┬──────────┘
-                               │
-                    ┌──────────┴──────────┐
-                    │ Answer Found ?      │
-                    └──────┬───────┬──────┘
-                           │       │
-                         YES       NO
-                           │       │
-                           ▼       ▼
+                         ┌─────────────────────┐
+                         │  Load Memory Node   │
+                         └──────────┬──────────┘
+                                    │
+                                    ▼
 
-                   Return Answer  Escalation Agent
-                                      │
-                                      ▼
-                               SQLite Tickets
+                         ┌─────────────────────┐
+                         │    Router Node      │
+                         └──────────┬──────────┘
+                                    │
+
+           ┌────────────────────────┼────────────────────────┐
+           │                        │                        │
+           ▼                        ▼                        ▼
+
+ ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+ │  Billing Agent  │    │  Account Agent  │    │ Technical Agent │
+ └────────┬────────┘    └────────┬────────┘    └────────┬────────┘
+          │                      │                      │
+          └──────────────────────┼──────────────────────┘
+                                 │
+                                 ▼
+
+                     ┌─────────────────────┐
+                     │ Escalation Node     │
+                     └──────────┬──────────┘
+                                │
+                                ▼
+
+                     ┌─────────────────────┐
+                     │ Save Memory Node    │
+                     └──────────┬──────────┘
+                                │
+                                ▼
+
+                     ┌─────────────────────┐
+                     │      Response       │
+                     └─────────────────────┘
+```
+
+---
+
+## LangGraph Workflow
+
+```text
+START
+  │
+  ▼
+Load Memory
+  │
+  ▼
+Router
+  │
+  ├── Billing Agent
+  │
+  ├── Technical Agent
+  │
+  └── Account Agent
+  │
+  ▼
+Escalation Check
+  │
+  ▼
+Save Memory
+  │
+  ▼
+END
 ```
 
 ---
@@ -78,7 +105,27 @@ Text Chunking
 OpenAI Embeddings
      │
      ▼
-ChromaDB
+ChromaDB Vector Store
+```
+
+---
+
+## Retrieval Pipeline (RAG)
+
+```text
+Customer Question
+        │
+        ▼
+Retriever
+        │
+        ▼
+Relevant Chunks
+        │
+        ▼
+OpenAI GPT
+        │
+        ▼
+Answer
 ```
 
 ---
@@ -87,18 +134,27 @@ ChromaDB
 
 ```text
 Customer Message
-      │
-      ▼
-SQLite Messages Table
-      │
-      ▼
+        │
+        ▼
+Load Memory Node
+        │
+        ▼
+SQLite Messages
+        │
+        ▼
 Conversation History
-      │
-      ▼
+        │
+        ▼
 Prompt Construction
-      │
-      ▼
+        │
+        ▼
 OpenAI GPT
+        │
+        ▼
+Save Memory Node
+        │
+        ▼
+SQLite Messages
 ```
 
 ---
@@ -109,7 +165,7 @@ OpenAI GPT
 Customer Question
         │
         ▼
-AI Response Generation
+Agent Response
         │
         ▼
 Answer Available?
@@ -122,14 +178,14 @@ Answer Available?
 Respond   Create Ticket
               │
               ▼
-         SQLite Storage
+         SQLite Tickets
 ```
 
 ---
 
 ## Database Schema
 
-### Tickets
+### tickets
 
 ```sql
 ticket_id
@@ -139,17 +195,67 @@ status
 created_at
 ```
 
-### Conversations
+### conversations
 
 ```sql
 session_id
 ```
 
-### Messages
+### messages
 
 ```sql
 session_id
 role
 content
 created_at
+```
+
+---
+
+## Agent Responsibilities
+
+### Router Agent
+
+Classifies incoming questions into:
+
+* billing
+* technical
+* account
+
+### Billing Agent
+
+Handles:
+
+* pricing
+* subscriptions
+* invoices
+* refunds
+
+### Technical Agent
+
+Handles:
+
+* API questions
+* integrations
+* technical issues
+* troubleshooting
+
+### Account Agent
+
+Handles:
+
+* login issues
+* password resets
+* profile management
+* account settings
+
+### Escalation Agent
+
+Handles:
+
+* unanswered questions
+* support ticket creation
+* ticket persistence
+
+```
 ```

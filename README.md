@@ -1,12 +1,14 @@
 # AI Customer Support Agent
 
-An AI-powered Customer Support Platform built using FastAPI, LangChain, OpenAI, ChromaDB, and SQLite.
+An AI-powered Customer Support Platform built using FastAPI, LangChain, LangGraph, OpenAI, ChromaDB, and SQLite.
 
 ## Overview
 
-This project simulates a production-grade customer support system that combines Retrieval-Augmented Generation (RAG), multi-agent routing, conversation memory, and automated ticket escalation.
+This project simulates a production-grade customer support system that combines Retrieval-Augmented Generation (RAG), multi-agent workflows, conversation memory, and automated ticket escalation.
 
 The platform allows customers to ask questions about company policies, pricing plans, account management, and technical integrations. Questions are automatically routed to specialized AI agents and answered using information stored in the company's knowledge base.
+
+The entire workflow is orchestrated using LangGraph, enabling stateful agent execution, memory management, routing, escalation, and response generation.
 
 When the system cannot confidently answer a question, it automatically creates a support ticket for human review.
 
@@ -18,7 +20,7 @@ When the system cannot confidently answer a question, it automatically creates a
 
 * Upload company PDF documents
 * Automatic document chunking
-* Vector embeddings generation
+* OpenAI embeddings generation
 * ChromaDB vector storage
 
 ### Retrieval-Augmented Generation (RAG)
@@ -29,27 +31,42 @@ When the system cannot confidently answer a question, it automatically creates a
 
 ### Multi-Agent Architecture
 
+* Router Agent
 * Billing Agent
 * Technical Support Agent
 * Account Support Agent
-* Router Agent
+* Escalation Agent
+
+### LangGraph Workflow
+
+* Stateful workflow execution
+* Conditional routing between agents
+* Memory loading and persistence
+* Automated escalation workflow
+
+Workflow:
+
+Load Memory → Router → Specialized Agent → Escalation Check → Save Memory → Response
 
 ### Conversation Memory
 
 * Session-based chat history
 * Persistent conversation storage using SQLite
 * Context-aware follow-up questions
+* Multi-turn conversation support
 
 ### Ticket Escalation System
 
 * Automatic escalation when answers are unavailable
 * Ticket creation and tracking
 * Ticket status management APIs
+* Persistent ticket storage
 
 ### Persistent Storage
 
 * SQLite ticket storage
 * SQLite conversation history
+* SQLite message history
 * Session management
 
 ---
@@ -65,6 +82,7 @@ When the system cannot confidently answer a question, it automatically creates a
 
 * OpenAI GPT-4o Mini
 * LangChain
+* LangGraph
 
 ### Vector Database
 
@@ -77,6 +95,36 @@ When the system cannot confidently answer a question, it automatically creates a
 ### Embeddings
 
 * OpenAI Embeddings (text-embedding-3-small)
+
+---
+
+## Architecture
+
+Customer Question
+
+↓
+
+Load Memory Node
+
+↓
+
+Router Agent
+
+↓
+
+Billing Agent / Technical Agent / Account Agent
+
+↓
+
+Escalation Check
+
+↓
+
+Save Memory Node
+
+↓
+
+Response
 
 ---
 
@@ -112,17 +160,20 @@ Update ticket status.
 
 ## Example Questions
 
-Billing:
+### Billing
 
 * What is your cheapest plan?
 * How much does the Professional plan cost?
+* Can I get a refund?
 
-Technical:
+### Technical
 
 * Do you provide API access?
 * Can I integrate your platform with my application?
+* What integrations are supported?
 
-Account:
+### Account
 
 * How do I reset my password?
 * My account is locked.
+* How can I update my profile settings?

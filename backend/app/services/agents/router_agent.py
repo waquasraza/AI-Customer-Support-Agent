@@ -9,56 +9,19 @@ llm = ChatOpenAI(
     temperature=0
 )
 
-CATEGORY_MAP = {
-    "pricing": "billing",
-    "refunds": "billing",
-    "payments": "billing",
-
-    "technical": "technical",
-    "api": "technical",
-    "integration": "technical",
-    "integrations": "technical",
-
-    "account": "account",
-    "authentication": "account",
-    "login": "account"
-}
-
 def route_question(question: str):
 
     prompt = f"""
     You are a routing agent.
 
-    Your job is to classify customer questions into ONE category.
+    Classify the customer question into exactly one category.
 
-    Available categories:
+    Categories:
+    - billing
+    - technical
+    - account
 
-    billing
-    - pricing
-    - plans
-    - refunds
-    - invoices
-    - subscriptions
-    - payments
-
-    technical
-    - api
-    - integrations
-    - bugs
-    - errors
-    - technical issues
-
-    account
-    - login
-    - password
-    - account settings
-    - profile
-    - authentication
-
-    Rules:
-    - Return ONLY one word.
-    - Do not explain.
-    - Do not add punctuation.
+    Return ONLY one word.
 
     Question:
     {question}
@@ -66,19 +29,9 @@ def route_question(question: str):
 
     response = llm.invoke(prompt)
 
-    agent = CATEGORY_MAP.get(
-    response.content.strip().lower(),
-    "technical"
-    )
+    agent = response.content.strip().lower()
 
-
-    allowed_agents = [
-        "billing",
-        "technical",
-        "account"
-    ]
-
-    if agent not in allowed_agents:
+    if agent not in ["billing", "technical", "account"]:
         return "technical"
 
     return agent

@@ -1,11 +1,7 @@
 from app.core.database import get_connection
 
 
-def save_message(
-    session_id: str,
-    role: str,
-    content: str
-    ):
+def save_message(session_id: str, role: str, content: str):
 
     conn = get_connection()
 
@@ -42,9 +38,7 @@ def save_message(
     conn.close()
 
 
-def get_conversation_history(
-    session_id: str
-):
+def get_conversation_history(session_id: str):
 
     conn = get_connection()
 
@@ -55,7 +49,8 @@ def get_conversation_history(
         SELECT role, content
         FROM messages
         WHERE session_id = ?
-        ORDER BY id ASC
+        ORDER BY id DESC
+        LIMIT 10
         """,
         (session_id,)
     )

@@ -5,10 +5,7 @@ import os
 from app.core.database import get_connection
 
 
-def create_ticket(
-    question: str,
-    category: str
-    ):
+def create_ticket(question: str, category: str ):
 
     conn = get_connection()
 
@@ -91,10 +88,7 @@ def get_ticket(ticket_id: str):
     return None
 
 
-def update_ticket_status(
-    ticket_id: str,
-    status: str
-    ):
+def update_ticket_status(ticket_id: str, status: str):
 
     conn = get_connection()
 

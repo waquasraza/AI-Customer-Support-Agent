@@ -7,28 +7,17 @@ from app.services.document_loader import load_pdf
 from app.services.chunker import chunk_documents
 from app.services.vector_store import store_chunks
 
-router = APIRouter(
-    prefix="/knowledge",
-    tags=["Knowledge Base"]
-)
+router = APIRouter(prefix="/knowledge", tags=["Knowledge Base"])
 
 UPLOAD_DIR = "uploads"
 
-os.makedirs(
-    UPLOAD_DIR,
-    exist_ok=True
-)
+os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 
 @router.post("/upload")
-async def upload_document(
-    file: UploadFile = File(...)
-):
+async def upload_document(file: UploadFile = File(...)):
 
-    file_path = os.path.join(
-        UPLOAD_DIR,
-        file.filename
-    )
+    file_path = os.path.join(UPLOAD_DIR, file.filename)
 
     # Save File
     with open(file_path, "wb") as buffer:
